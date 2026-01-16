@@ -7,6 +7,7 @@ import {
   Line,
   LineChart,
   ResponsiveContainer,
+  ReferenceArea,
   Tooltip,
   XAxis,
   YAxis,
@@ -26,6 +27,14 @@ import "./styles.css";
 
 const REFRESH_INTERVAL_MS = 30000;
 const CHART_WINDOW_HOURS = 12;
+const METRIC_STYLES = {
+  temperature: { line: "#E07A5F", soft: "#F8D9CF" },
+  humidity: { line: "#3E7CB1", soft: "#D6E7F5" },
+  pressure: { line: "#6D6A8E", soft: "#E4E3F1" },
+  uv_index: { line: "#D08C28", soft: "#F6E2C6" },
+  ambient_light: { line: "#2C7F9B", soft: "#D3E8F0" },
+  illuminance: { line: "#7A9A2F", soft: "#E3ECCD" },
+};
 
 /**
  * Build a list of cards from the summary payload.
@@ -53,33 +62,32 @@ function buildCardItems(summary, unitPreference) {
 }
 
 /**
- * Extract available metric options from the summary payload.
- */
-function buildMetricOptions(summary) {
-  const metrics = new Set();
-  summary.forEach((sensor) => {
-    sensor.metrics.forEach((metric) => metrics.add(metric.metric));
-  });
-  return Array.from(metrics).sort();
-}
-
-/**
- * Extract available sensor options from the summary payload.
- */
-function buildSensorOptions(summary) {
-  return summary.map((sensor) => ({
-    key: sensor.key,
-    label: sensor.location ? `${sensor.name} (${sensor.location})` : sensor.name,
-  }));
-}
-
-/**
  * Build a start/end window for chart queries.
  */
 function buildRange(hours) {
   const end = new Date();
   const start = new Date(end.getTime() - hours * 60 * 60 * 1000);
   return { start: start.toISOString(), end: end.toISOString() };
+}
+
+/**
+ * Build a list of chart series definitions from the summary payload.
+ */
+function buildChartSeries(summary) {
+  const series = [];
+  summary.forEach((sensor) => {
+    sensor.metrics.forEach((metric) => {
+      series.push({
+        sensorKey: sensor.key,
+        sensorName: sensor.name,
+        location: sensor.location || "",
+        model: sensor.model,
+        metric: metric.metric,
+        unit: metric.unit,
+      });
+    });
+  });
+  return series;
 }
 
 /**
@@ -104,27 +112,73 @@ function prepareChartData(measurements, metric, unitPreference) {
 }
 
 /**
+ * Build a unique key for a sensor/metric series.
+ */
+function buildSeriesKey(sensorKey, metric) {
+  return `${sensorKey}-${metric}`;
+}
+
+/**
+ * Format a unit label for chart headers.
+ */
+function formatChartUnit(metric, unit, unitPreference) {
+  if (metric === "temperature") {
+    return unitPreference === "f" ? "°F" : "°C";
+  }
+  if (unit === "pct") {
+    return "%";
+  }
+  if (unit === "hpa") {
+    return "hPa";
+  }
+  if (unit === "lux") {
+    return "lux";
+  }
+  if (unit === "als") {
+    return "ALS";
+  }
+  if (unit === "uv_index") {
+    return "UV";
+  }
+  return unit || "";
+}
+
+/**
+ * Return the style tuple for a metric chart.
+ */
+function getMetricStyle(metric) {
+  return METRIC_STYLES[metric] || { line: "#1b7f6b", soft: "#D8EEE8" };
+}
+
+/**
+ * Compute a min/max range for the series.
+ */
+function computeRange(values) {
+  const numeric = values.filter((value) => typeof value === "number");
+  if (!numeric.length) {
+    return null;
+  }
+  return {
+    min: Math.min(...numeric),
+    max: Math.max(...numeric),
+  };
+}
+
+/**
  * Dashboard application component.
  */
 export default function App() {
   const [summary, setSummary] = useState([]);
   const [summaryMeta, setSummaryMeta] = useState({ generatedAt: null });
-  const [measurements, setMeasurements] = useState([]);
-  const [chartMetric, setChartMetric] = useState("temperature");
-  const [chartSensor, setChartSensor] = useState("ambient_bme280");
+  const [seriesData, setSeriesData] = useState({});
   const [unitPreference, setUnitPreference] = useState(loadUnitPreference());
   const [status, setStatus] = useState({ loading: true, error: null });
 
-  const metricOptions = useMemo(() => buildMetricOptions(summary), [summary]);
-  const sensorOptions = useMemo(() => buildSensorOptions(summary), [summary]);
   const cardItems = useMemo(
     () => buildCardItems(summary, unitPreference),
     [summary, unitPreference],
   );
-  const chartData = useMemo(
-    () => prepareChartData(measurements, chartMetric, unitPreference),
-    [measurements, chartMetric, unitPreference],
-  );
+  const chartSeries = useMemo(() => buildChartSeries(summary), [summary]);
 
   useEffect(() => {
     let cancelled = false;
@@ -158,40 +212,38 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!metricOptions.length && !sensorOptions.length) {
-      return;
-    }
-    if (metricOptions.length && !metricOptions.includes(chartMetric)) {
-      setChartMetric(metricOptions[0]);
-    }
-    if (sensorOptions.length && !sensorOptions.find((item) => item.key === chartSensor)) {
-      setChartSensor(sensorOptions[0].key);
-    }
-  }, [metricOptions, sensorOptions, chartMetric, chartSensor]);
-
-  useEffect(() => {
-    if (!chartMetric || !chartSensor) {
+    if (!chartSeries.length) {
       return;
     }
     let cancelled = false;
 
     /**
-     * Fetch chart data for the selected sensor and metric.
+     * Fetch chart data for every sensor/metric series.
      */
     const loadMeasurements = async () => {
       try {
         const range = buildRange(CHART_WINDOW_HOURS);
-        const data = await fetchMeasurements({
-          sensor_key: chartSensor,
-          metric: chartMetric,
-          start: range.start,
-          end: range.end,
-          limit: 2000,
-        });
+        const responses = await Promise.all(
+          chartSeries.map((series) =>
+            fetchMeasurements({
+              sensor_key: series.sensorKey,
+              metric: series.metric,
+              start: range.start,
+              end: range.end,
+              limit: 2000,
+            }),
+          ),
+        );
         if (cancelled) {
           return;
         }
-        setMeasurements(data.measurements || []);
+        const nextData = {};
+        responses.forEach((data, index) => {
+          const series = chartSeries[index];
+          nextData[buildSeriesKey(series.sensorKey, series.metric)] =
+            data.measurements || [];
+        });
+        setSeriesData(nextData);
       } catch (error) {
         if (cancelled) {
           return;
@@ -204,7 +256,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [chartMetric, chartSensor]);
+  }, [chartSeries]);
 
   /**
    * Update the unit preference and persist it locally.
@@ -221,7 +273,7 @@ export default function App() {
           <p className="eyebrow">Terrarium Monitor</p>
           <h1>Habitat Climate Overview</h1>
           <p className="subhead">
-            Live readings with a {CHART_WINDOW_HOURS}-hour trend line.
+            Live readings with a {CHART_WINDOW_HOURS}-hour sensor history.
           </p>
         </div>
         <div className="controls">
@@ -270,83 +322,134 @@ export default function App() {
         )}
       </section>
 
-      <section className="chart-panel">
-        <header className="chart-header">
-          <div>
-            <p className="eyebrow">Trend View</p>
-            <h2>{formatMetricLabel(chartMetric)}</h2>
-          </div>
-          <div className="chart-controls">
-            <label>
-              Metric
-              <select
-                value={metricOptions.includes(chartMetric) ? chartMetric : ""}
-                onChange={(event) => setChartMetric(event.target.value)}
-              >
-                {!metricOptions.length ? (
-                  <option value="">Waiting for data</option>
-                ) : null}
-                {metricOptions.map((metric) => (
-                  <option key={metric} value={metric}>
-                    {formatMetricLabel(metric)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Sensor
-              <select
-                value={sensorOptions.find((sensor) => sensor.key === chartSensor) ? chartSensor : ""}
-                onChange={(event) => setChartSensor(event.target.value)}
-              >
-                {!sensorOptions.length ? (
-                  <option value="">Waiting for data</option>
-                ) : null}
-                {sensorOptions.map((sensor) => (
-                  <option key={sensor.key} value={sensor.key}>
-                    {sensor.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+      <section className="charts">
+        <header className="charts-header">
+          <p className="eyebrow">Sensor Trends</p>
+          <h2>Every reading, every sensor</h2>
+          <p className="charts-subhead">
+            Showing the last {CHART_WINDOW_HOURS} hours for each metric.
+          </p>
         </header>
+        {status.error ? <div className="empty">{status.error}</div> : null}
+        {summary.length ? (
+          summary.map((sensor) => (
+            <div className="sensor-panel" key={sensor.key}>
+              <header className="sensor-header">
+                <div>
+                  <h3>{sensor.name}</h3>
+                  <p className="sensor-meta">
+                    {sensor.location || "Terrarium"} {sensor.model ? `· ${sensor.model}` : ""}
+                  </p>
+                </div>
+                <span className="sensor-pill">{sensor.key}</span>
+              </header>
+              <div className="sensor-charts">
+                {sensor.metrics.map((metric) => {
+                  const seriesKey = buildSeriesKey(sensor.key, metric.metric);
+                  const rawData = seriesData[seriesKey] || [];
+                  const chartData = prepareChartData(
+                    rawData,
+                    metric.metric,
+                    unitPreference,
+                  );
+                  const metricStyle = getMetricStyle(metric.metric);
+                  const range = computeRange(chartData.map((item) => item.value));
+                  const unitLabel = formatChartUnit(
+                    metric.metric,
+                    metric.unit,
+                    unitPreference,
+                  );
+                  const formattedValue = formatMeasurementValue(
+                    metric.metric,
+                    metric.value,
+                    metric.unit,
+                    unitPreference,
+                  );
+                  const recordedLabel = metric.recorded_at
+                    ? `Updated ${formatTimestamp(metric.recorded_at)}`
+                    : "Waiting for data";
 
-        <div className="chart-body">
-          {status.error ? (
-            <div className="empty">{status.error}</div>
-          ) : (
-            <ResponsiveContainer width="100%" height={320}>
-              <LineChart data={chartData} margin={{ top: 10, right: 24, left: 0, bottom: 0 }}>
-                <XAxis dataKey="recorded_at" tickFormatter={formatChartTime} />
-                <YAxis
-                  tickFormatter={(value) =>
-                    chartMetric === "temperature" && typeof value === "number"
-                      ? value.toFixed(0)
-                      : value
-                  }
-                />
-                <Tooltip
-                  labelFormatter={formatTimestamp}
-                  formatter={(value, name, props) => {
-                    const data = props.payload || {};
-                    return [
-                      formatMeasurementValue(chartMetric, data.value, data.unit, unitPreference),
-                      formatMetricLabel(chartMetric),
-                    ];
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#1b7f6b"
-                  strokeWidth={3}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
+                  return (
+                    <article
+                      className="metric-chart"
+                      key={seriesKey}
+                      style={{
+                        "--metric-line": metricStyle.line,
+                        "--metric-soft": metricStyle.soft,
+                      }}
+                    >
+                      <header className="metric-header">
+                        <div>
+                          <p className="eyebrow">{formatMetricLabel(metric.metric)}</p>
+                          <h4>{unitLabel}</h4>
+                        </div>
+                        <div className="metric-reading">
+                          <span className="metric-value">{formattedValue}</span>
+                          <span className="metric-time">{recordedLabel}</span>
+                        </div>
+                        <span className="metric-pill">{metric.metric}</span>
+                      </header>
+                      <div className="chart-body">
+                        {chartData.length ? (
+                          <ResponsiveContainer width="100%" height={220}>
+                            <LineChart
+                              data={chartData}
+                              margin={{ top: 10, right: 24, left: 0, bottom: 0 }}
+                            >
+                              <XAxis dataKey="recorded_at" tickFormatter={formatChartTime} />
+                              <YAxis
+                                tickFormatter={(value) =>
+                                  metric.metric === "temperature" && typeof value === "number"
+                                    ? value.toFixed(0)
+                                    : value
+                                }
+                              />
+                              {range ? (
+                                <ReferenceArea
+                                  y1={range.min}
+                                  y2={range.max}
+                                  fill={metricStyle.soft}
+                                  fillOpacity={0.35}
+                                  strokeOpacity={0}
+                                />
+                              ) : null}
+                              <Tooltip
+                                labelFormatter={formatTimestamp}
+                                formatter={(value, name, props) => {
+                                  const data = props.payload || {};
+                                  return [
+                                    formatMeasurementValue(
+                                      metric.metric,
+                                      data.value,
+                                      data.unit,
+                                      unitPreference,
+                                    ),
+                                    formatMetricLabel(metric.metric),
+                                  ];
+                                }}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="value"
+                                stroke={metricStyle.line}
+                                strokeWidth={2.6}
+                                dot={false}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="empty">Waiting for readings.</div>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="empty">No readings yet. Waiting for sensor data.</div>
+        )}
       </section>
     </div>
   );

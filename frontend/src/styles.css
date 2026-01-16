@@ -176,51 +176,6 @@ h1 {
   color: var(--text-muted);
 }
 
-.chart-panel {
-  margin-top: 32px;
-  background: var(--surface);
-  border-radius: 24px;
-  padding: 20px 24px 24px;
-  box-shadow: 0 20px 45px var(--shadow);
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.chart-header h2 {
-  margin: 0;
-  font-size: 1.6rem;
-}
-
-.chart-controls {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.chart-controls label {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  gap: 6px;
-}
-
-.chart-controls select {
-  border: 1px solid rgba(26, 45, 42, 0.15);
-  border-radius: 12px;
-  padding: 8px 12px;
-  font-family: inherit;
-  background: var(--surface-muted);
-}
-
 .chart-body {
   margin-top: 16px;
 }
@@ -244,6 +199,145 @@ h1 {
   }
 }
 
+.charts {
+  margin-top: 32px;
+  display: grid;
+  gap: 24px;
+}
+
+.charts-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.charts-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.charts-subhead {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  max-width: 520px;
+}
+
+.sensor-panel {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(246, 248, 247, 0.96));
+  border-radius: 24px;
+  padding: 20px 24px 24px;
+  border: 1px solid rgba(26, 45, 42, 0.08);
+  box-shadow: 0 20px 45px var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.sensor-panel::after {
+  content: "";
+  position: absolute;
+  top: -90px;
+  right: -80px;
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(27, 127, 107, 0.18), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sensor-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.sensor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sensor-header h3 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.sensor-meta {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.sensor-pill {
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sensor-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.metric-chart {
+  background: linear-gradient(180deg, var(--metric-soft), rgba(255, 255, 255, 0.9));
+  border-radius: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(26, 45, 42, 0.1);
+  border-left: 4px solid var(--metric-line);
+  box-shadow: 0 12px 24px rgba(26, 45, 42, 0.08);
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.metric-header h4 {
+  margin: 4px 0 0;
+  font-size: 1.05rem;
+}
+
+.metric-reading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  text-align: right;
+  min-width: 120px;
+}
+
+.metric-value {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--metric-line);
+}
+
+.metric-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.metric-pill {
+  background: var(--metric-soft);
+  color: var(--metric-line);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 900px) {
   .hero {
     flex-direction: column;
@@ -252,5 +346,15 @@ h1 {
 
   .controls {
     align-items: flex-start;
+  }
+
+  .sensor-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .metric-reading {
+    align-items: flex-start;
+    text-align: left;
   }
 }

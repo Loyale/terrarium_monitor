@@ -28,6 +28,16 @@ The SQLite database is persisted in the `terrarium_data` Docker volume.
 
 If the frontend runs on a different port, set `TERRARIUM_ALLOW_CORS=1` for the backend.
 
+## Sample data
+To preview the UI with realistic readings, seed the SQLite database:
+
+- `PYTHONPATH=. python scripts/seed_sample_data.py --hours 12 --interval-min 5`
+
+Use `--seed` to change the random pattern or `--clear` to wipe existing measurements before reseeding.
+
+If your backend uses a non-default database path, set `TERRARIUM_DB_PATH` to the same value
+when running the script.
+
 ## Environment variables
 | Variable | Purpose | Default |
 | --- | --- | --- |
