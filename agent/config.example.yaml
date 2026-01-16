@@ -1,0 +1,38 @@
+api:
+  url: http://localhost:8000/api/measurements
+  timeout_sec: 10
+sensors:
+  - key: ambient_bme280
+    type: bme280
+    name: Ambient Air
+    location: Upper canopy
+    address: 0x76
+    interval_sec: 60
+    metrics:
+      - temperature_c
+      - humidity_pct
+      - pressure_hpa
+  - key: uv_ltr390
+    type: ltr390
+    name: UV + Light
+    location: Basking zone
+    address: 0x53
+    interval_sec: 60
+    metrics:
+      - uv_index
+      - ambient_light
+  - key: probe_ds18b20
+    type: ds18b20
+    name: Warm Hide Probe
+    location: Warm hide
+    interval_sec: 60
+    metrics:
+      - temperature_c
+  - key: ambient_bh1750
+    type: bh1750
+    name: Ambient Light
+    location: Mid canopy
+    address: 0x23
+    interval_sec: 60
+    metrics:
+      - illuminance

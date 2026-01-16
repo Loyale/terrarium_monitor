@@ -1,0 +1,256 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;500;700&display=swap");
+
+:root {
+  --bg-start: #f3efe6;
+  --bg-mid: #e9f2f0;
+  --bg-end: #d8e8f5;
+  --text-primary: #1a2d2a;
+  --text-muted: #4c6a64;
+  --accent: #1b7f6b;
+  --accent-soft: #cfe7df;
+  --surface: #ffffff;
+  --surface-muted: #f6f8f7;
+  --shadow: rgba(26, 45, 42, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Manrope", sans-serif;
+  color: var(--text-primary);
+  background: linear-gradient(120deg, var(--bg-start), var(--bg-mid), var(--bg-end));
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+}
+
+body::before {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  right: -120px;
+  background: radial-gradient(circle, rgba(255, 204, 150, 0.55), transparent 70%);
+}
+
+body::after {
+  width: 520px;
+  height: 520px;
+  bottom: -200px;
+  left: -160px;
+  background: radial-gradient(circle, rgba(127, 195, 202, 0.45), transparent 65%);
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px 72px;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: clamp(2.2rem, 3vw, 3.2rem);
+  font-weight: 700;
+}
+
+.subhead {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.unit-toggle {
+  display: inline-flex;
+  background: var(--surface-muted);
+  border-radius: 999px;
+  padding: 6px;
+  gap: 4px;
+  box-shadow: 0 10px 25px var(--shadow);
+}
+
+.unit-toggle button {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.unit-toggle button.active {
+  background: var(--accent);
+  color: white;
+}
+
+.status {
+  background: var(--surface);
+  padding: 12px 16px;
+  border-radius: 16px;
+  box-shadow: 0 12px 25px var(--shadow);
+  text-align: right;
+  min-width: 180px;
+}
+
+.status span {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.status strong {
+  font-size: 0.95rem;
+}
+
+.cards {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.card {
+  background: var(--surface);
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(27, 127, 107, 0.08);
+  box-shadow: 0 16px 30px var(--shadow);
+  animation: rise 0.6s ease both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.card-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.card-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 8px 0;
+}
+
+.card-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.card-time {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.chart-panel {
+  margin-top: 32px;
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 20px 24px 24px;
+  box-shadow: 0 20px 45px var(--shadow);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.chart-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.chart-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.chart-controls label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  gap: 6px;
+}
+
+.chart-controls select {
+  border: 1px solid rgba(26, 45, 42, 0.15);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-family: inherit;
+  background: var(--surface-muted);
+}
+
+.chart-body {
+  margin-top: 16px;
+}
+
+.empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--surface-muted);
+  border-radius: 16px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .controls {
+    align-items: flex-start;
+  }
+}

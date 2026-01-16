@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      TERRARIUM_DB_PATH: /data/terrarium.db
+      TERRARIUM_TIMEZONE: local
+    volumes:
+      - terrarium_data:/data
+volumes:
+  terrarium_data:

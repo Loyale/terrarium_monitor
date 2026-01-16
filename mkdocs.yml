@@ -1,0 +1,36 @@
+site_name: Terrarium Monitor
+site_description: Monitoring and logging for reptile terrarium sensors
+site_author: Terrarium Monitor Contributors
+site_url: https://loyale.github.io/terrarium_monitor
+
+nav:
+  - Overview: index.md
+  - Architecture: architecture.md
+  - Setup: setup.md
+  - Sensor Agent: agent.md
+  - API Reference: api.md
+  - Frontend: frontend.md
+  - Operations: operations.md
+  - Troubleshooting: troubleshooting.md
+  - Roadmap: roadmap.md
+  - Contributing: contributing.md
+
+theme:
+  name: material
+  language: en
+  palette:
+    - scheme: default
+      primary: teal
+      accent: light green
+  font:
+    text: "Manrope"
+    code: "Fira Mono"
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+
+extra:
+  generator: false

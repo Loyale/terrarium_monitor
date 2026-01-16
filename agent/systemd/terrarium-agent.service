@@ -1,0 +1,15 @@
+[Unit]
+Description=Terrarium Sensor Agent
+After=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/opt/terrarium
+ExecStart=/usr/bin/python3 /opt/terrarium/agent/agent.py --config /etc/terrarium-agent/config.yaml
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+requests==2.31.0
+PyYAML==6.0.1
+adafruit-circuitpython-bme280==2.6.23
+adafruit-circuitpython-ltr390==1.1.9
+adafruit-circuitpython-bh1750==1.1.9
+w1thermsensor==2.0.0
+adafruit-blinka==8.40.0
