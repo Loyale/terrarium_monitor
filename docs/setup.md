@@ -28,6 +28,9 @@ The SQLite database is persisted in the `terrarium_data` Docker volume.
 
 If the frontend runs on a different port, set `TERRARIUM_ALLOW_CORS=1` for the backend.
 
+## Wiring
+See `docs/hardware.md` for GPIO pinouts and sensor wiring details.
+
 ## Sample data
 To preview the UI with realistic readings, seed the SQLite database:
 

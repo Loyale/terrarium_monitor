@@ -10,6 +10,7 @@ Terrarium Monitor is a Raspberry Pi friendly stack for collecting, storing, and 
 
 ## Quick links
 - Setup steps: see Setup
+- Hardware wiring: see Hardware Wiring
 - Sensor agent config: see Sensor Agent
 - API details: see API Reference
 
